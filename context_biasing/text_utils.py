@@ -20,7 +20,7 @@ def lev(a, b):
 
 
 def fuzzy_fix(pred, phrases):
-    names = [p for p in phrases if " " not in p]
+    names = sorted({re.sub(r"['’]s$", "", p) for p in phrases if " " not in p})
     out = []
     for w in pred.split(" "):
         pre, core, post = re.match(r"^(\W*)(.*?)((?:['’]s)?\W*)$", w).groups()

@@ -10,7 +10,7 @@ from omegaconf import open_dict
 from context_biasing.text_utils import fuzzy_fix, norm, present
 from context_biasing.trie_fusion import TrieFusionModel
 
-GRID = [(2.0, 0.25), (2.5, 0.5), (3.0, 0.5), (3.0, 0.25)]  # (bonus, gamma)
+GRID = [(2.0, 0.5)]  # (bonus, gamma); testing fail-arc fallback
 
 saved = json.load(open("preds_dev.json"))
 refs_raw, dicts = saved["refs"], saved["dicts"]
@@ -45,13 +45,19 @@ orig_cfg = copy.deepcopy(model.cfg.decoding)
 class TrieShim:
     bonus = 1.0
     gamma = 0.0
+    fallback = True
 
     @classmethod
     def from_config(cls, cfg, tokenizer=None):
         tok = tokenizer if tokenizer is not None else model.tokenizer
         phrases = getattr(cfg, "key_phrases_list", None) or cfg["key_phrases_list"]
         return TrieFusionModel(
-            list(phrases), tok, tok.vocab_size, bonus=cls.bonus, gamma=cls.gamma
+            list(phrases),
+            tok,
+            tok.vocab_size,
+            bonus=cls.bonus,
+            gamma=cls.gamma,
+            fallback=cls.fallback,
         )
 
 
@@ -93,5 +99,5 @@ for bonus, gamma in GRID:
     out[f"own_{bonus}_{gamma}"] = preds
     out[f"own_fuzzy_{bonus}_{gamma}"] = fixed
 
-json.dump(out, open("preds_own_dev3.json", "w"))
-print("RESULT saved preds_own_dev3.json")
+json.dump(out, open("preds_own_dev4.json", "w"))
+print("RESULT saved preds_own_dev4.json")
